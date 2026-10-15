@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Band Trainer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Band Trainer">
 <style>
   :root{
     --bg:#0f1115; --card:#171a21; --line:#262b36;
@@ -171,6 +177,10 @@
     <div id="heroMeta"></div>
     <button class="primary big" id="startWorkout" style="margin-top:16px">
       ▶ Start guided workout
+    </button>
+    <button class="ghost accent" id="installBtn"
+        style="display:none;margin-top:10px;width:100%">
+  ⬇ Install app on this device
     </button>
   </div>
 
@@ -1081,6 +1091,30 @@ function renderAll(){
   drawChart();
 }
 renderAll();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'block';
+  });
+
+  document.addEventListener('click', async e => {
+    if (e.target && e.target.id === 'installBtn' && deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      e.target.style.display = 'none';
+    }
+  });
 </script>
 </body>
 </html>
