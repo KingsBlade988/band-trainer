@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Band Trainer</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --line:#262b36;
+    --text:#e6e9ef; --muted:#8b93a5; --accent:#4f8cff; --ok:#38d39f;
+    --warn:#ffb454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+       background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:760px;margin:0 auto;padding:20px 20px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:14px;margin:26px 0 10px;color:var(--muted);
+     text-transform:uppercase;letter-spacing:.08em}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);
+        border-radius:12px;padding:14px;margin-bottom:10px}
+  .ex{display:flex;gap:14px;align-items:center}
+  .art{width:72px;height:72px;flex:0 0 72px;border-radius:10px;
+       background:#1e2330;display:grid;place-items:center;
+       color:#cfd6e6;padding:6px}
+  .art svg{width:100%;height:100%}
+  .info{flex:1;min-width:0}
+  .name{font-weight:600}
+  .meta{font-size:13px;color:var(--muted)}
+  .meta.cue{color:#aab2c4;margin-top:2px}
+  details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+  summary{cursor:pointer;font-size:13px;color:var(--accent);
+          list-style:none;font-weight:600}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"▸ ";display:inline-block;transition:.15s}
+  details[open] summary::before{transform:rotate(90deg)}
+  .guide{display:flex;gap:16px;margin-top:12px;align-items:flex-start;flex-wrap:wrap}
+  .guide .bigart{width:150px;height:150px;flex:0 0 150px;border-radius:12px;
+    background:#1e2330;padding:10px;color:#cfd6e6}
+  .guide .bigart svg{width:100%;height:100%}
+  .guide .text{flex:1;min-width:200px}
+  .guide ol{margin:0 0 10px;padding-left:18px;font-size:14px}
+  .guide ol li{margin-bottom:6px}
+  .guide .mist{font-size:13px;color:#ff9a9a}
+  .guide .mist b{color:#ffb3b3}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input,select,button{font:inherit}
+  input,select{width:100%;padding:10px;border-radius:8px;
+    border:1px solid var(--line);background:#0f1218;color:var(--text)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  button.primary{margin-top:14px;width:100%;padding:12px;border:0;
+    border-radius:8px;background:var(--accent);color:#fff;font-weight:600;
+    cursor:pointer}
+  button.primary:active{transform:translateY(1px)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;width:auto}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  button.ghost.accent{border-color:var(--accent);color:var(--accent)}
+  button.ghost.accent:hover{background:var(--accent);color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:12px;font-weight:500;text-transform:uppercase}
+  .empty{color:var(--muted);font-size:14px;padding:10px 0}
+  .del{background:none;border:0;color:var(--muted);cursor:pointer;
+       width:auto;padding:4px;margin:0}
+  .del:hover{color:#ff6b6b}
+  .stat{display:flex;gap:10px;flex-wrap:wrap}
+  .stat div{background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;flex:1;min-width:100px}
+  .stat .n{font-size:22px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--muted)}
+  .check{display:flex;align-items:center;gap:10px;padding:10px 12px;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    margin-bottom:8px;cursor:pointer;font-size:14px;transition:.15s}
+  .check:hover{border-color:var(--accent)}
+  .check .box{width:22px;height:22px;border-radius:6px;
+    border:2px solid var(--line);display:grid;place-items:center;
+    font-size:14px;color:#0f1115;font-weight:900}
+  .check.done{border-color:var(--ok)}
+  .check.done .box{background:var(--ok);border-color:var(--ok)}
+  .check.done span:last-child{color:var(--muted);text-decoration:line-through}
+
+  /* Timer */
+  #timerCard{display:none;text-align:center;padding:22px 14px}
+  #timerCard.on{display:block}
+  #timerNum{font-size:52px;font-weight:800;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;line-height:1}
+  #timerLabel{color:var(--muted);font-size:13px;margin-top:4px}
+  .timerBtns{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .timerBtns button{background:#0f1218;border:1px solid var(--line);
+    color:var(--text);padding:8px 14px;border-radius:8px;font-size:13px;
+    cursor:pointer;width:auto;margin:0}
+  .timerBtns button:hover{border-color:var(--accent)}
+  .timerBtns button.active{background:var(--accent);border-color:var(--accent);
+    color:#fff}
+
+  /* Chart */
+  #chart{width:100%;display:block}
+  .chartWrap{position:relative}
+
+  /* Coach */
+  .tip{display:flex;gap:10px;padding:10px 12px;border-radius:10px;
+    margin-bottom:8px;font-size:13.5px;line-height:1.45;
+    background:#12161f;border:1px solid var(--line)}
+  .tip .icon{flex:0 0 22px;font-size:15px;line-height:1.4}
+  .tip.ok{border-color:#1f3a30}
+  .tip.warn{border-color:#3a2f1a}
+  .tip.info{border-color:#1f2b3a}
+  .tip.ok .icon{color:var(--ok)}
+  .tip.warn .icon{color:var(--warn)}
+  .tip.info .icon{color:var(--accent)}
+
+  /* Data buttons */
+  .dataBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎯 Band Trainer</h1>
+  <p class="sub">Tube band workouts, tracked.</p>
+
+  <h2>Today's checklist</h2>
+  <div id="checklist"></div>
+
+  <h2>Coach</h2>
+  <div id="coach"></div>
+  <div class="dataBtns" style="margin-top:12px">
+    <button class="ghost accent" id="copyReport">📋 Copy report for AI coach</button>
+  </div>
+  <div class="meta" style="font-size:12px;margin-top:8px">
+    Paste the copied report into ChatGPT or Claude for a deeper review.
+  </div>
+
+  <h2>Plan &amp; form</h2>
+  <div id="plan"></div>
+
+  <h2>Log a set</h2>
+  <div class="card" id="logcard">
+    <label>Exercise</label>
+    <select id="f-ex"></select>
+    <div class="row">
+      <div><label>Sets</label><input id="f-sets" type="number" min="1" value="2"></div>
+      <div><label>Reps</label><input id="f-reps" type="number" min="1" value="10"></div>
+    </div>
+    <label>Band</label>
+    <select id="f-band">
+      <option>Thinnest</option><option>Thin</option><option>Medium</option>
+      <option>Thick</option><option>Thickest</option>
+    </select>
+    <label>Notes (optional)</label>
+    <input id="f-notes" placeholder="felt easy, go heavier next time">
+    <button class="primary" id="save">Save set</button>
+  </div>
+
+  <h2>Rest timer</h2>
+  <div class="card" id="timerCard">
+    <div id="timerNum">60</div>
+    <div id="timerLabel">seconds</div>
+    <div class="timerBtns">
+      <button data-s="30">30s</button>
+      <button data-s="60">60s</button>
+      <button data-s="90">90s</button>
+      <button data-s="120">120s</button>
+      <button id="timerStop">Stop</button>
+    </div>
+  </div>
+
+  <h2>Progress</h2>
+  <div class="stat">
+    <div><div class="n" id="s-sessions">0</div><div class="l">Sessions</div></div>
+    <div><div class="n" id="s-sets">0</div><div class="l">Total sets</div></div>
+    <div><div class="n" id="s-week">0</div><div class="l">Sets this week</div></div>
+  </div>
+
+  <h2>Chart</h2>
+  <div class="card">
+    <label>Exercise</label>
+    <select id="chartEx"></select>
+    <div class="chartWrap" style="margin-top:10px">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="meta" style="margin-top:6px;font-size:12px">
+      Total reps per session (sets × reps).
+    </div>
+  </div>
+
+  <h2>History</h2>
+  <div class="card">
+    <div id="hist"></div>
+  </div>
+
+  <h2>Data</h2>
+  <div class="card">
+    <div class="meta" style="font-size:13px">
+      Your data lives in this browser. Export to back it up or move it to another device.
+    </div>
+    <div class="dataBtns">
+      <button class="ghost" id="exportBtn">⬇ Export JSON</button>
+      <button class="ghost" id="importBtn">⬆ Import JSON</button>
+      <button class="ghost" id="clearBtn" style="color:#ff9a9a;border-color:#4a2a2a">Clear all</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Illustrations ---------- */
+const S = inner => `<svg viewBox="0 0 100 100" fill="none"
+  stroke="currentColor" stroke-width="3" stroke-linecap="round"
+  stroke-linejoin="round">${inner}</svg>`;
+const BAND = `stroke="#4f8cff" stroke-dasharray="4 3" stroke-width="2"`;
+
+const ART = {
+  squat: S(`
+    <circle cx="44" cy="18" r="7"/>
+    <line x1="44" y1="25" x2="48" y2="52"/>
+    <line x1="48" y1="52" x2="66" y2="56"/>
+    <line x1="66" y1="56" x2="62" y2="80"/>
+    <line x1="62" y1="80" x2="74" y2="80"/>
+    <line x1="44" y1="32" x2="54" y2="36"/>
+    <line x1="54" y1="36" x2="58" y2="30"/>
+    <path d="M58 30 Q 66 56 63 80" ${BAND}/>
+  `),
+  chest: S(`
+    <circle cx="38" cy="20" r="7"/>
+    <line x1="38" y1="27" x2="38" y2="62"/>
+    <line x1="38" y1="62" x2="32" y2="84"/>
+    <line x1="38" y1="62" x2="44" y2="84"/>
+    <line x1="38" y1="34" x2="62" y2="32"/>
+    <line x1="38" y1="44" x2="62" y2="42"/>
+    <path d="M62 32 Q 18 30 18 42 Q 18 55 62 42" ${BAND}/>
+  `),
+  row: S(`
+    <circle cx="58" cy="26" r="7"/>
+    <line x1="58" y1="33" x2="52" y2="58"/>
+    <line x1="52" y1="58" x2="74" y2="64"/>
+    <line x1="74" y1="64" x2="80" y2="78"/>
+    <line x1="58" y1="38" x2="44" y2="44"/>
+    <line x1="44" y1="44" x2="52" y2="48"/>
+    <path d="M52 48 Q 78 58 80 78" ${BAND}/>
+  `),
+  press: S(`
+    <circle cx="50" cy="32" r="7"/>
+    <line x1="50" y1="39" x2="50" y2="68"/>
+    <line x1="50" y1="68" x2="44" y2="86"/>
+    <line x1="50" y1="68" x2="56" y2="86"/>
+    <line x1="50" y1="44" x2="40" y2="24"/>
+    <line x1="50" y1="44" x2="60" y2="24"/>
+    <path d="M40 24 Q 30 60 44 86" ${BAND}/>
+    <path d="M60 24 Q 70 60 56 86" ${BAND}/>
+  `),
+  curl: S(`
+    <circle cx="44" cy="18" r="7"/>
+    <line x1="44" y1="25" x2="44" y2="60"/>
+    <line x1="44" y1="60" x2="38" y2="84"/>
+    <line x1="44" y1="60" x2="50" y2="84"/>
+    <line x1="44" y1="32" x2="44" y2="46"/>
+    <line x1="44" y1="46" x2="56" y2="36"/>
+    <path d="M38 84 Q 30 60 56 36" ${BAND}/>
+  `),
+  plank: S(`
+    <circle cx="22" cy="42" r="7"/>
+    <line x1="28" y1="46" x2="60" y2="50"/>
+    <line x1="28" y1="46" x2="30" y2="62"/>
+    <line x1="30" y1="62" x2="42" y2="62"/>
+    <line x1="60" y1="50" x2="78" y2="56"/>
+    <line x1="78" y1="56" x2="86" y2="66"/>
+  `)
+};
+
+/* ---------- Plan ---------- */
+const PLAN = [
+  {
+    name:"Squat", art:ART.squat, band:"Thickest", reps:"2 × 10",
+    cue:"Stand on the band, handles at shoulders.",
+    steps:[
+      "Stand on the middle of the band. Feet shoulder-width apart, toes slightly out.",
+      "Hold both handles at shoulder height, elbows bent, palms forward.",
+      "Push your hips back and bend your knees — like sitting into a chair.",
+      "Lower until your thighs are roughly parallel to the floor. Keep your chest up.",
+      "Push through your whole foot to stand up. Squeeze glutes at the top."
+    ],
+    mistakes:["Knees caving inward — push them out over your toes.",
+              "Heels lifting off the floor — keep weight mid-foot.",
+              "Lower back rounding — stop before that happens."]
+  },
+  {
+    name:"Chest Press", art:ART.chest, band:"Medium", reps:"2 × 10",
+    cue:"Band behind back, press forward.",
+    steps:[
+      "Loop the band behind your upper back, under your armpits.",
+      "Hold the handles at chest height, elbows bent to about 90°.",
+      "Stand tall, feet hip-width, one foot slightly forward for balance.",
+      "Press both handles straight forward until arms are almost straight.",
+      "Slowly return to the start. Keep tension the whole time."
+    ],
+    mistakes:["Elbows flaring way out — keep them about 45° from your body.",
+              "Arching your lower back — brace your abs.",
+              "Letting the band snap back — control the return."]
+  },
+  {
+    name:"Row", art:ART.row, band:"Thick", reps:"2 × 10",
+    cue:"Band around feet, pull to ribs.",
+    steps:[
+      "Sit on the floor with legs extended, knees slightly bent.",
+      "Loop the band around the soles of both feet.",
+      "Hold handles with arms extended, palms facing each other.",
+      "Pull the handles to your lower ribs. Squeeze your shoulder blades together.",
+      "Slowly extend your arms back out. Keep your back straight."
+    ],
+    mistakes:["Hunching your upper back — sit tall, chest up.",
+              "Yanking with your arms — pull with your back muscles.",
+              "Shrugging your shoulders — keep them down and back."]
+  },
+  {
+    name:"Overhead Press", art:ART.press, band:"Thin", reps:"2 × 10",
+    cue:"Stand on band, press straight up.",
+    steps:[
+      "Stand on the middle of the band, feet hip-width.",
+      "Hold both handles at shoulder height, palms forward.",
+      "Brace your abs and squeeze your glutes.",
+      "Press straight up overhead until your arms are almost locked out.",
+      "Lower slowly back to shoulders. Don't let the band drop you."
+    ],
+    mistakes:["Leaning back — keep your ribcage down, core tight.",
+              "Pressing forward instead of up — go straight over your head.",
+              "Shrugging shoulders at the top — keep them relaxed."]
+  },
+  {
+    name:"Bicep Curl", art:ART.curl, band:"Thinnest", reps:"2 × 12",
+    cue:"Stand on band, curl up slow.",
+    steps:[
+      "Stand on the middle of the band with feet hip-width.",
+      "Hold both handles, palms facing forward, arms at your sides.",
+      "Keep your elbows pinned to your sides — don't let them drift forward.",
+      "Curl the handles up toward your shoulders.",
+      "Squeeze at the top, then lower for 3 slow seconds."
+    ],
+    mistakes:["Swinging your body to lift — stay still.",
+              "Elbows moving forward — keep them at your ribs.",
+              "Going too fast — the lowering phase builds the muscle."]
+  },
+  {
+    name:"Plank", art:ART.plank, band:"—", reps:"2 × 30s",
+    cue:"Hold 20–30 seconds. Body straight.",
+    steps:[
+      "Get on the floor on your forearms and toes.",
+      "Elbows directly under your shoulders, forearms flat on the ground.",
+      "Squeeze your glutes and abs. Body forms a straight line from head to heels.",
+      "Don't let your hips sag or pike up. Breathe normally.",
+      "Hold 20–30 seconds. Add 5 seconds each week."
+    ],
+    mistakes:["Hips sagging toward the floor — squeeze glutes.",
+              "Butt piked up in the air — lower your hips in line.",
+              "Holding your breath — breathe slow and steady."]
+  }
+];
+
+/* ---------- State ---------- */
+const KEY = "bandtrainer.logs";
+let logs = JSON.parse(localStorage.getItem(KEY) || "[]");
+const save = () => localStorage.setItem(KEY, JSON.stringify(logs));
+
+/* ---------- Plan render ---------- */
+document.getElementById("plan").innerHTML = PLAN.map(p => `
+  <div class="card">
+    <div class="ex">
+      <div class="art">${p.art}</div>
+      <div class="info">
+        <div class="name">${p.name}</div>
+        <div class="meta">${p.reps} · Band: ${p.band}</div>
+        <div class="meta cue">${p.cue}</div>
+      </div>
+    </div>
+    <details>
+      <summary>Form guide</summary>
+      <div class="guide">
+        <div class="bigart">${p.art}</div>
+        <div class="text">
+          <ol>${p.steps.map(s => `<li>${s}</li>`).join("")}</ol>
+          <div class="mist"><b>Avoid:</b> ${p.mistakes.join(" ")}</div>
+        </div>
+      </div>
+    </details>
+  </div>`).join("");
+
+/* ---------- Dropdowns ---------- */
+const exSel = document.getElementById("f-ex");
+exSel.innerHTML = PLAN.map(p => `<option>${p.name}</option>`).join("");
+const chartSel = document.getElementById("chartEx");
+chartSel.innerHTML = PLAN.map(p => `<option>${p.name}</option>`).join("");
+chartSel.onchange = drawChart;
+
+/* ---------- Checklist ---------- */
+function renderChecklist(){
+  const today = new Date().toISOString().slice(0,10);
+  const done = new Set(logs.filter(l => l.date === today).map(l => l.exercise));
+  document.getElementById("checklist").innerHTML = PLAN.map(p => {
+    const d = done.has(p.name);
+    return `<div class="check ${d?'done':''}" data-ex="${p.name}">
+      <span class="box">${d?'✓':''}</span>
+      <span>${p.name}</span>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".check").forEach(el => {
+    el.onclick = () => {
+      exSel.value = el.dataset.ex;
+      document.getElementById("logcard")
+        .scrollIntoView({behavior:"smooth", block:"center"});
+      setTimeout(() => document.getElementById("f-sets").focus(), 300);
+    };
+  });
+}
+
+/* ---------- Coach engine ---------- */
+function computeCoach(){
+  const tips = [];
+  if(!logs.length){
+    tips.push({t:"info", icon:"👋",
+      msg:"Welcome. Log your first workout — even if it's just Squat, Chest Press and Row. The coach wakes up after a few sessions."});
+    return tips;
+  }
+
+  const today = new Date();
+  const weekAgo = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
+  const thisWeek = logs.filter(l => l.date >= weekAgo);
+  const sessions = new Set(thisWeek.map(l => l.date)).size;
+
+  /* Consistency */
+  if(sessions === 0){
+    tips.push({t:"warn", icon:"⚠",
+      msg:"No sessions logged in the last 7 days. Don't restart from zero — just do the first three exercises today. 15 minutes. That's the whole ask."});
+  } else if(sessions < 3){
+    tips.push({t:"info", icon:"📅",
+      msg:`${sessions} session${sessions>1?'s':''} this week. Target is 3. One more to go — pick a day and show up.`});
+  } else {
+    tips.push({t:"ok", icon:"✓",
+      msg:`${sessions} sessions this week. That's the consistency that builds muscle. Keep it.`});
+  }
+
+  /* Per-exercise analysis */
+  PLAN.forEach(p => {
+    const ex = logs.filter(l => l.exercise === p.name)
+                   .sort((a,b) => a.date.localeCompare(b.date));
+    if(!ex.length) return;
+
+    const byDate = {};
+    ex.forEach(l => {
+      const total = Number(l.sets) * Number(l.reps);
+      byDate[l.date] = (byDate[l.date] || 0) + total;
+    });
+    const dates = Object.keys(byDate).sort();
+    const values = dates.map(d => byDate[d]);
+
+    const lastDate = new Date(dates[dates.length-1]);
+    const daysSince = Math.round((today - lastDate) / 864e5);
+
+    if(daysSince > 10){
+      tips.push({t:"warn", icon:"⏱",
+        msg:`${p.name}: last logged ${daysSince} days ago. Add it back this week — skipping is how progress stalls.`});
+      return;
+    }
+    if(values.length < 2) return;
+
+    const recent = values.slice(-3);
+    const delta = recent[recent.length-1] - recent[0];
+
+    if(recent.length >= 3 && delta === 0){
+      tips.push({t:"info", icon:"→",
+        msg:`${p.name}: flat for 3 sessions. Step further from the band, or switch to the next thicker one. Small change, real difference.`});
+    } else if(delta > 0){
+      tips.push({t:"ok", icon:"↑",
+        msg:`${p.name}: reps trending up (+${delta} across recent sessions). Keep going until 12 reps feels controlled, then step further.`});
+    } else if(delta < 0){
+      tips.push({t:"warn", icon:"↓",
+        msg:`${p.name}: reps dropped ${delta}. Could be fatigue. Check sleep (7–9h), protein (100–135g), and whether you trained this hard yesterday.`});
+    }
+  });
+
+  /* Overall volume gate */
+  const weekSets = thisWeek.reduce((a,l) => a + Number(l.sets), 0);
+  if(sessions >= 3 && weekSets < 12){
+    tips.push({t:"info", icon:"📊",
+      msg:`Only ${weekSets} sets this week. Aim for ~18 (3 sessions × 6 exercises × 2 sets). Add the exercises you've been skipping.`});
+  }
+
+  return tips;
+}
+
+function renderCoach(){
+  const tips = computeCoach();
+  document.getElementById("coach").innerHTML = tips.map(t =>
+    `<div class="tip ${t.t}"><div class="icon">${t.icon}</div><div>${t.msg}</div></div>`
+  ).join("");
+}
+
+/* ---------- Report builder ---------- */
+function buildReport(){
+  const today = new Date().toISOString().slice(0,10);
+  const weekAgo = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
+  const thisWeek = logs.filter(l => l.date >= weekAgo);
+  const sessions = new Set(logs.map(l => l.date)).size;
+  const totalSets = logs.reduce((a,l) => a + Number(l.sets), 0);
+  const weekSets = thisWeek.reduce((a,l) => a + Number(l.sets), 0);
+  const weekSessions = new Set(thisWeek.map(l => l.date)).size;
+
+  const lines = [];
+  lines.push("# Band Trainer — weekly review");
+  lines.push("");
+  lines.push("**Date:** " + today);
+  lines.push("**Me:** 23yo, 62 kg, 5'10\", goal: build muscle");
+  lines.push("**Equipment:** tube bands with handles, various thicknesses");
+  lines.push("**Program:** 6 band exercises, 3×/week, full body");
+  lines.push("");
+  lines.push("## Overall stats");
+  lines.push("- Total sessions logged: " + sessions);
+  lines.push("- Total sets logged: " + totalSets);
+  lines.push("- Sessions this week: " + weekSessions + " (target 3)");
+  lines.push("- Sets this week: " + weekSets);
+  lines.push("");
+
+  lines.push("## Last 15 logged entries");
+  lines.push("");
+  lines.push("| Date | Exercise | Sets | Reps | Band | Notes |");
+  lines.push("|---|---|---|---|---|---|");
+  logs.slice(-15).reverse().forEach(l => {
+    lines.push(`| ${l.date} | ${l.exercise} | ${l.sets} | ${l.reps} | ${l.band} | ${l.notes || ""} |`);
+  });
+  lines.push("");
+
+  lines.push("## Per-exercise trend (total reps per session)");
+  lines.push("");
+  PLAN.forEach(p => {
+    const ex = logs.filter(l => l.exercise === p.name)
+                   .sort((a,b) => a.date.localeCompare(b.date));
+    if(!ex.length) return;
+    const byDate = {};
+    ex.forEach(l => {
+      const t = Number(l.sets) * Number(l.reps);
+      byDate[l.date] = (byDate[l.date] || 0) + t;
+    });
+    const trend = Object.keys(byDate).sort().map(d => byDate[d]).join(" → ");
+    lines.push(`- **${p.name}**: ${trend}`);
+  });
+  lines.push("");
+
+  lines.push("## Local coach notes");
+  computeCoach().forEach(t => lines.push(`- [${t.t}] ${t.msg}`));
+  lines.push("");
+
+  lines.push("## Questions for my AI coach");
+  lines.push("- Am I ready to progress any exercise to a thicker band?");
+  lines.push("- Should I add or swap any exercise?");
+  lines.push("- Is my weekly volume enough to gain muscle at 62 kg?");
+  lines.push("- What should I focus on next week?");
+  return lines.join("\n");
+}
+
+document.getElementById("copyReport").onclick = async () => {
+  const text = buildReport();
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById("copyReport");
+    const original = btn.textContent;
+    btn.textContent = "✓ Copied — paste into ChatGPT or Claude";
+    setTimeout(() => btn.textContent = original, 2200);
+  }catch(e){
+    const w = window.open("", "_blank");
+    w.document.write("<pre style='white-space:pre-wrap;font:14px/1.5 system-ui;padding:20px'>" +
+      text.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</pre>");
+  }
+};
+
+/* ---------- Stats + history ---------- */
+function render(){
+  renderChecklist();
+  renderCoach();
+
+  const weekAgo = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
+  const sessions = new Set(logs.map(l => l.date)).size;
+  const sets = logs.reduce((a,l) => a + Number(l.sets), 0);
+  const wk = logs.filter(l => l.date >= weekAgo).reduce((a,l) => a + Number(l.sets), 0);
+  document.getElementById("s-sessions").textContent = sessions;
+  document.getElementById("s-sets").textContent = sets;
+  document.getElementById("s-week").textContent = wk;
+
+  const h = document.getElementById("hist");
+  if(!logs.length){
+    h.innerHTML = `<div class="empty">No sets logged yet.</div>`;
+  } else {
+    h.innerHTML = `<table>
+      <tr><th>Date</th><th>Exercise</th><th>Sets×Reps</th><th>Band</th><th></th></tr>
+      ${logs.slice().reverse().map((l,i) => `
+        <tr>
+          <td>${l.date.slice(5)}</td>
+          <td>${l.exercise}</td>
+          <td>${l.sets}×${l.reps}</td>
+          <td>${l.band}</td>
+          <td><button class="del" data-i="${logs.length-1-i}">✕</button></td>
+        </tr>`).join("")}
+    </table>`;
+    h.querySelectorAll(".del").forEach(b => b.onclick = () => {
+      logs.splice(+b.dataset.i, 1); save(); render();
+    });
+  }
+
+  drawChart();
+}
+
+/* ---------- Chart ---------- */
+function drawChart(){
+  const cvs = document.getElementById("chart");
+  if(!cvs) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cvs.clientWidth || cvs.parentElement.clientWidth;
+  const h = 220;
+  cvs.width = w * dpr;
+  cvs.height = h * dpr;
+  cvs.style.height = h + "px";
+  const ctx = cvs.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const ex = document.getElementById("chartEx").value;
+  const filtered = logs.filter(l => l.exercise === ex);
+
+  if(!filtered.length){
+    ctx.fillStyle = "#8b93a5";
+    ctx.font = "14px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("No data yet for this exercise", w/2, h/2);
+    return;
+  }
+
+  const byDate = {};
+  filtered.forEach(l => {
+    const total = Number(l.sets) * Number(l.reps);
+    byDate[l.date] = (byDate[l.date] || 0) + total;
+  });
+  const dates = Object.keys(byDate).sort();
+  const values = dates.map(d => byDate[d]);
+  const maxV = Math.max(...values, 1);
+
+  const padL = 42, padR = 18, padT = 22, padB = 34;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
+
+  ctx.font = "11px system-ui";
+  ctx.textAlign = "right";
+  for(let i = 0; i <= 4; i++){
+    const v = Math.round(maxV * i / 4);
+    const y = padT + plotH - (plotH * i / 4);
+    ctx.fillStyle = "#8b93a5";
+    ctx.fillText(v, padL - 6, y + 4);
+    ctx.strokeStyle = "#262b36";
+    ctx.beginPath();
+    ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y);
+    ctx.stroke();
+  }
+
+  const pts = dates.map((d, i) => {
+    const x = dates.length === 1
+      ? padL + plotW/2
+      : padL + plotW * i / (dates.length - 1);
+    const y = padT + plotH - plotH * values[i] / maxV;
+    return {x, y, v: values[i], d};
+  });
+
+  ctx.strokeStyle = "#4f8cff";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.stroke();
+
+  ctx.lineTo(pts[pts.length-1].x, padT + plotH);
+  ctx.lineTo(pts[0].x, padT + plotH);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(79,140,255,0.12)";
+  ctx.fill();
+
+  pts.forEach(p => {
+    ctx.fillStyle = "#4f8cff";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#e6e9ef";
+    ctx.font = "bold 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(p.v, p.x, p.y - 9);
+
+    ctx.fillStyle = "#8b93a5";
+    ctx.font = "10px system-ui";
+    ctx.fillText(p.d.slice(5), p.x, padT + plotH + 16);
+  });
+}
+window.addEventListener("resize", drawChart);
+
+/* ---------- Rest timer ---------- */
+let timerInt = null;
+let audioCtx = null;
+let lastDuration = 60;
+
+function beep(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = "sine";
+    o.frequency.value = 880;
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(0.18, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.start(t); o.stop(t + 0.3);
+  }catch(e){}
+}
+
+function stopTimer(){
+  if(timerInt){ clearInterval(timerInt); timerInt = null; }
+}
+
+function startTimer(seconds){
+  stopTimer();
+  lastDuration = seconds;
+  const card = document.getElementById("timerCard");
+  const num = document.getElementById("timerNum");
+  card.classList.add("on");
+  let remaining = seconds;
+  num.textContent = remaining;
+  document.querySelectorAll(".timerBtns button[data-s]").forEach(b => {
+    b.classList.toggle("active", +b.dataset.s === seconds);
+  });
+
+  const tick = () => {
+    if(remaining <= 0){
+      stopTimer();
+      num.textContent = "Go!";
+      beep(); setTimeout(beep, 320); setTimeout(beep, 640);
+      return;
+    }
+    num.textContent = remaining;
+    remaining--;
+  };
+  tick();
+  timerInt = setInterval(tick, 1000);
+}
+
+document.querySelectorAll(".timerBtns button[data-s]").forEach(b => {
+  b.onclick = () => startTimer(+b.dataset.s);
+});
+document.getElementById("timerStop").onclick = () => {
+  stopTimer();
+  document.getElementById("timerCard").classList.remove("on");
+};
+
+/* ---------- Save ---------- */
+document.getElementById("save").onclick = () => {
+  logs.push({
+    date: new Date().toISOString().slice(0,10),
+    exercise: exSel.value,
+    sets: document.getElementById("f-sets").value,
+    reps: document.getElementById("f-reps").value,
+    band: document.getElementById("f-band").value,
+    notes: document.getElementById("f-notes").value
+  });
+  save();
+  render();
+  document.getElementById("f-notes").value = "";
+  startTimer(lastDuration);
+  document.getElementById("timerCard").scrollIntoView({behavior:"smooth", block:"center"});
+};
+
+/* ---------- Export / Import / Clear ---------- */
+document.getElementById("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(logs, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `bandtrainer-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById("importBtn").onclick = () => {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".json,application/json";
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        if(!Array.isArray(data)) throw new Error("File is not a list of workouts");
+        const valid = data.every(d =>
+          d && typeof d.date === "string" &&
+          typeof d.exercise === "string" &&
+          d.sets != null && d.reps != null);
+        if(!valid) throw new Error("Some entries are missing fields");
+        if(confirm(`Import ${data.length} entries? This replaces your current data.`)){
+          logs = data;
+          save();
+          render();
+          alert("Imported. Welcome back.");
+        }
+      }catch(err){
+        alert("Could not import: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+};
+
+document.getElementById("clearBtn").onclick = () => {
+  if(confirm("Delete all workout logs? Export first if you're not sure.")){
+    logs = [];
+    save();
+    render();
+  }
+};
+
+/* ---------- Go ---------- */
+render();
+</script>
+</body>
+</html>
