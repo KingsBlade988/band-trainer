@@ -214,12 +214,14 @@
       </div>
       <div>
         <label>Band</label>
-        <select id="sessBand">
-          <option>Thinnest</option><option>Thin</option><option>Medium</option>
-          <option>Thick</option><option>Thickest</option>
-          <option>Bodyweight</option>
-        </select>
-      </div>
+<select id="sessBand">
+  <option>1 band</option>
+  <option>2 bands</option>
+  <option>3 bands</option>
+  <option>4 bands</option>
+  <option>5 bands</option>
+  <option>Bodyweight</option>
+</select>      </div>
     </div>
 
     <button class="primary big" id="setDone" style="margin-top:14px">
@@ -296,8 +298,12 @@
   </div>
   <label>Band</label>
   <select id="f-band">
-    <option>Thinnest</option><option>Thin</option><option>Medium</option>
-    <option>Thick</option><option>Thickest</option>
+ <option>1 band</option>
+  <option>2 bands</option>
+  <option>3 bands</option>
+  <option>4 bands</option>
+  <option>5 bands</option>
+  <option>Bodyweight</option>
   </select>
   <label>Notes</label>
   <input id="f-notes" placeholder="optional">
@@ -409,7 +415,7 @@ const ART = {
 /* ---------- Plan ---------- */
 const PLAN = [
   {
-    name:"Squat", art:ART.squat, band:"Thickest", reps:10, sets:2,
+    name:"Squat", art:ART.squat, band:"3 bands", reps:10, sets:2,
     isTime:false,
     cue:"Stand on the band, handles at shoulders.",
     steps:[
@@ -424,7 +430,7 @@ const PLAN = [
               "Lower back rounding — stop before that happens."]
   },
   {
-    name:"Chest Press", art:ART.chest, band:"Medium", reps:10, sets:2,
+    name:"Chest Press", art:ART.chest, band:"3 bands", reps:10, sets:2,
     isTime:false,
     cue:"Band behind back, press forward.",
     steps:[
@@ -439,7 +445,7 @@ const PLAN = [
               "Letting the band snap back — control the return."]
   },
   {
-    name:"Row", art:ART.row, band:"Thick", reps:10, sets:2,
+    name:"Row", art:ART.row, band:"4 bands", reps:10, sets:2,
     isTime:false,
     cue:"Band around feet, pull to ribs.",
     steps:[
@@ -454,7 +460,7 @@ const PLAN = [
               "Shrugging your shoulders — keep them down and back."]
   },
   {
-    name:"Overhead Press", art:ART.press, band:"Thin", reps:10, sets:2,
+    name:"Overhead Press", art:ART.press, band:"2 bands", reps:10, sets:2,
     isTime:false,
     cue:"Stand on band, press straight up.",
     steps:[
@@ -469,7 +475,7 @@ const PLAN = [
               "Shrugging shoulders at the top — keep them relaxed."]
   },
   {
-    name:"Bicep Curl", art:ART.curl, band:"Thinnest", reps:12, sets:2,
+    name:"Bicep Curl", art:ART.curl, band:"1 band", reps:12, sets:2,
     isTime:false,
     cue:"Stand on band, curl up slow.",
     steps:[
@@ -499,7 +505,6 @@ const PLAN = [
               "Holding your breath — breathe slow and steady."]
   }
 ];
-
 /* ---------- State ---------- */
 const KEY = "bandtrainer.logs";
 let logs = JSON.parse(localStorage.getItem(KEY) || "[]");
